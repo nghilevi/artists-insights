@@ -26,17 +26,16 @@ async function defineWeight({id, weight, daysAgo}){ // return a number
 }
 
 function createInsights({formatResult, isNewsFormat, limit}){
-    const initiaInsights = [];
-    return formatResult
-        .slice(0) // create a copy of formatResult for iterating
-        .reduce((accInsights, result, _id, arr) => {
-            if(accInsights.length >= limit){
-                arr.splice(0); // stop reduce by mutating iterated arr
-            }else if(result){
-                accInsights = accInsights.concat(isNewsFormat ? insightToNews(result) : result); // accInsights is now pointed to a new array
-            }
-            return accInsights;
-        }, initiaInsights);
+    const insights = [];
+    let i = 0;
+    while(insights.length < limit && i < formatResult.length){
+        const result = formatResult[i]
+        if(result){
+            insights.push(isNewsFormat ? insightToNews(result) : result)
+        }
+        i++;
+    }
+    return insights
 }
 
 async function getArtistInsights({ id, limit, weight, daysAgo, newsFormat }) {
