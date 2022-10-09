@@ -30,12 +30,16 @@ async function defineWeight({id, weight, daysAgo}){ // return a number
 }
 
 function createInsights({formatResult, newsFormat, limit}){
-    return formatResult.reduce((acc, result) => {
-        if(result && acc.insights.length < acc.limit){
-            acc.insights.push(Boolean(newsFormat) ? insightToNews(result) : result)
-        }
-        return acc
-    }, {insights:[], limit})
+    return formatResult
+        .slice(0) // create a copy of formatResult for iterating
+        .reduce((acc, result, _id, arr) => {
+            if(acc.insights.length >= acc.limit){
+                arr.splice(0) // stop reduce by mutating iterated arr
+            }else if(result){
+                acc.insights.push(Boolean(newsFormat) ? insightToNews(result) : result)
+            }
+            return acc
+        }, {insights:[], limit})
 }
 
 async function getArtistInsights({ id, limit, weight, daysAgo, newsFormat }) {
