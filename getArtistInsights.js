@@ -30,16 +30,17 @@ async function defineWeight({id, weight, daysAgo}){ // return a number
 }
 
 function createInsights({formatResult, newsFormat, limit}){
+    const initiaInsights = []
     return formatResult
         .slice(0) // create a copy of formatResult for iterating
-        .reduce((acc, result, _id, arr) => {
-            if(acc.insights.length >= acc.limit){
+        .reduce((accInsights, result, _id, arr) => {
+            if(accInsights.length >= limit){
                 arr.splice(0) // stop reduce by mutating iterated arr
             }else if(result){
-                acc.insights.push(Boolean(newsFormat) ? insightToNews(result) : result)
+                accInsights = [...accInsights, Boolean(newsFormat) ? insightToNews(result) : result]
             }
-            return acc
-        }, {insights:[], limit})
+            return accInsights
+        }, initiaInsights)
 }
 
 async function getArtistInsights({ id, limit, weight, daysAgo, newsFormat }) {
@@ -54,7 +55,7 @@ async function getArtistInsights({ id, limit, weight, daysAgo, newsFormat }) {
         )
 
         const insightsLimit = Math.abs(limit + (10 - definedWeight) * 200) // TODO should we ensure definedWeight <= 10 ?
-        const {insights} = createInsights({formatResult, newsFormat, limit: insightsLimit})
+        const insights = createInsights({formatResult, newsFormat, limit: insightsLimit})
 
         return { insights, ...(Boolean(newsFormat) && {weight: definedWeight}) };
 
