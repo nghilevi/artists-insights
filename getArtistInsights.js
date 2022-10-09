@@ -1,64 +1,55 @@
 
 
-const ARTIST_INSIGHTS_QUERIES = QUERIES.QUERY_GET_ARTIST_INFO.ARTIST_INSIGHTS
-const buildGetInsightsCountQuery = ARTIST_INSIGHTS_QUERIES.GET_INSIGHTS_COUNT
-const buildGetArtistInsightsQuery = ARTIST_INSIGHTS_QUERIES.GET_ARTIST_INSIGHTS
+const ARTIST_INSIGHTS_QUERIES = QUERIES.QUERY_GET_ARTIST_INFO.ARTIST_INSIGHTS;
+const buildGetInsightsCountQuery = ARTIST_INSIGHTS_QUERIES.GET_INSIGHTS_COUNT;
+const buildGetArtistInsightsQuery = ARTIST_INSIGHTS_QUERIES.GET_ARTIST_INSIGHTS;
 
 function getInsightsCountFromDb({ id, highWeight, mediumWeight, daysAgo }){
-    const query = buildGetInsightsCountQuery(id, highWeight, mediumWeight, daysAgo)
+    const query = buildGetInsightsCountQuery(id, highWeight, mediumWeight, daysAgo);
     return snowflakeClientExecuteQuery(query);
 }
 
 function getArtistInsightsFromDb({ id, limit, weight, daysAgo }){
-    const query = buildGetArtistInsightsQuery(id, limit * 10, weight, daysAgo)
+    const query = buildGetArtistInsightsQuery(id, limit * 10, weight, daysAgo);
     return snowflakeClientExecuteQuery(query);
 }
 
 async function evaluateWeight ({id, daysAgo}) {
-    const highWeight = 8;
-    const mediumWeight = 4;
-    const lowWeight = 1
-    const counts = await getInsightsCountFromDb({id, highWeight, mediumWeight, daysAgo})
-    const [high, medium] = counts
-    const [isHighWeight, isMediumWeight] = [high?.count, medium?.count]
-    const lowOrMediumWeight = isMediumWeight ? mediumWeight : lowWeight
-    return isHighWeight ? highWeight : lowOrMediumWeight;
+    const weight = {high: 8, medium: 4, low: 1};
+    const counts = await getInsightsCountFromDb({id, highWeight: weight.high, mediumWeight: weight.medium, daysAgo});
+    const [high, medium] = [counts[0]?.count, counts[1]?.count];
+    return high ? weight.high : (medium ? weight.medium : weight.low);
 }
 
 async function defineWeight({id, weight, daysAgo}){ // return a number
-    return typeof weight === 'number' ? weight : await evaluateWeight({id, daysAgo})
+    return typeof weight === 'number' ? weight : await evaluateWeight({id, daysAgo});
 }
 
 function createInsights({formatResult, newsFormat, limit}){
-    const initiaInsights = []
+    const initiaInsights = [];
     return formatResult
         .slice(0) // create a copy of formatResult for iterating
         .reduce((accInsights, result, _id, arr) => {
             if(accInsights.length >= limit){
-                arr.splice(0) // stop reduce by mutating iterated arr
+                arr.splice(0); // stop reduce by mutating iterated arr
             }else if(result){
-                accInsights = accInsights.concat(Boolean(newsFormat) ? insightToNews(result) : result) // accInsights is now pointed to a new array
+                accInsights = accInsights.concat(Boolean(newsFormat) ? insightToNews(result) : result); // accInsights is now pointed to a new array
             }
-            return accInsights
-        }, initiaInsights)
+            return accInsights;
+        }, initiaInsights);
 }
 
 async function getArtistInsights({ id, limit, weight, daysAgo, newsFormat }) {
     try{
-        const definedWeight = await defineWeight({id, weight, daysAgo})
-        
-        const sfResult = await getArtistInsightsFromDb({id, limit, definedWeight, daysAgo })
-        const filteredResult = filterResults(sfResult)
-        
+        const definedWeight = await defineWeight({id, weight, daysAgo});
+        const sfResult = await getArtistInsightsFromDb({id, limit, definedWeight, daysAgo });
+        const filteredResult = filterResults(sfResult);
         const formatResult = await Promise.all(
             filteredResult.map(result => formatInsight(result)) // formatInsight accepts an object and returns a Promise
-        )
-
-        const insightsLimit = Math.abs(limit + (10 - definedWeight) * 200) // TODO should we ensure definedWeight <= 10 ?
-        const insights = createInsights({formatResult, newsFormat, limit: insightsLimit})
-
+        );
+        const insightsLimit = Math.abs(limit + (10 - definedWeight) * 200); // TODO should we ensure definedWeight <= 10 ?
+        const insights = createInsights({formatResult, newsFormat, limit: insightsLimit});
         return { insights, ...(Boolean(newsFormat) && {weight: definedWeight}) };
-
     }catch(err){
         // TODO handle err here
     }
