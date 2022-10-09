@@ -17,15 +17,15 @@ function getArtistInsightsFromDb({ id, limit, weight, daysAgo }){
 async function evaluateWeight ({id, daysAgo}) {
     const weight = {high: 8, medium: 4, low: 1};
     const counts = await getInsightsCountFromDb({id, highWeight: weight.high, mediumWeight: weight.medium, daysAgo});
-    const [high, medium] = [counts[0]?.count, counts[1]?.count];
-    return high ? weight.high : (medium ? weight.medium : weight.low);
+    const [isHigh, isMedium] = [counts[0]?.count, counts[1]?.count];
+    return isHigh ? weight.high : (isMedium ? weight.medium : weight.low);
 }
 
 async function defineWeight({id, weight, daysAgo}){ // return a number
     return typeof weight === 'number' ? weight : await evaluateWeight({id, daysAgo});
 }
 
-function createInsights({formatResult, newsFormat, limit}){
+function createInsights({formatResult, isNewsFormat, limit}){
     const initiaInsights = [];
     return formatResult
         .slice(0) // create a copy of formatResult for iterating
@@ -33,7 +33,7 @@ function createInsights({formatResult, newsFormat, limit}){
             if(accInsights.length >= limit){
                 arr.splice(0); // stop reduce by mutating iterated arr
             }else if(result){
-                accInsights = accInsights.concat(Boolean(newsFormat) ? insightToNews(result) : result); // accInsights is now pointed to a new array
+                accInsights = accInsights.concat(isNewsFormat ? insightToNews(result) : result); // accInsights is now pointed to a new array
             }
             return accInsights;
         }, initiaInsights);
@@ -48,8 +48,9 @@ async function getArtistInsights({ id, limit, weight, daysAgo, newsFormat }) {
             filteredResult.map(result => formatInsight(result)) // formatInsight accepts an object and returns a Promise
         );
         const insightsLimit = Math.abs(limit + (10 - definedWeight) * 200); // TODO should we ensure definedWeight <= 10 ?
-        const insights = createInsights({formatResult, newsFormat, limit: insightsLimit});
-        return { insights, ...(Boolean(newsFormat) && {weight: definedWeight}) };
+        const isNewsFormat = Boolean(newsFormat)
+        const insights = createInsights({formatResult, isNewsFormat, limit: insightsLimit});
+        return { insights, ...(isNewsFormat && {weight: definedWeight}) };
     }catch(err){
         // TODO handle err here
     }
