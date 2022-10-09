@@ -1,2 +1,3 @@
 *.original.js
+*.comments.js
 *.spec.js

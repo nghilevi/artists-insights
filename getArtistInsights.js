@@ -14,19 +14,19 @@ function getArtistInsightsFromDb({ id, limit, weight, daysAgo }){
     return snowflakeClientExecuteQuery(query);
 }
 
-async function defineWeight({id, weight, daysAgo}){ // return a number
+async function evaluateWeight ({id, daysAgo}) {
     const highWeight = 8;
     const mediumWeight = 4;
     const lowWeight = 1
-    let definedWeight = weight
-    if (isNaN(weight)) {
-        const counts = await getInsightsCountFromDb({id, highWeight, mediumWeight, daysAgo})
-        const [high, medium] = counts
-        const [isHighWeight, isMediumWeight] = [high?.count, medium?.count]
-        const lowOrMediumWeight = isMediumWeight ? mediumWeight : lowWeight
-        definedWeight = isHighWeight ? highWeight : lowOrMediumWeight;
-    }
-    return definedWeight
+    const counts = await getInsightsCountFromDb({id, highWeight, mediumWeight, daysAgo})
+    const [high, medium] = counts
+    const [isHighWeight, isMediumWeight] = [high?.count, medium?.count]
+    const lowOrMediumWeight = isMediumWeight ? mediumWeight : lowWeight
+    return isHighWeight ? highWeight : lowOrMediumWeight;
+}
+
+async function defineWeight({id, weight, daysAgo}){ // return a number
+    return typeof weight === 'number' ? weight : await evaluateWeight({id, daysAgo})
 }
 
 function createInsights({formatResult, newsFormat, limit}){
