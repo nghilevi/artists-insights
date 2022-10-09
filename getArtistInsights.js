@@ -37,7 +37,7 @@ function createInsights({formatResult, newsFormat, limit}){
             if(accInsights.length >= limit){
                 arr.splice(0) // stop reduce by mutating iterated arr
             }else if(result){
-                accInsights = [...accInsights, Boolean(newsFormat) ? insightToNews(result) : result]
+                accInsights = accInsights.concat(Boolean(newsFormat) ? insightToNews(result) : result)
             }
             return accInsights
         }, initiaInsights)
