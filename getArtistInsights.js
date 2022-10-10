@@ -26,7 +26,7 @@ async function defineWeight({id, weight, daysAgo}){ // return a number
 function createInsights({formattedInsights, isNewsFormat, limit}){
     const insights = [];
     let i = 0;
-    while(insights.length < limit && i < formattedInsights.length){
+    while(insights.length < limit && i < formattedInsights.length){ // reason using while-loop: https://hackernoon.com/3-javascript-performance-mistakes-you-should-stop-doing-ebf84b9de951
         const insight = formattedInsights[i];
         if(insight) insights.push(isNewsFormat ? insightToNews(insight) : insight);
         i++;
