@@ -29,13 +29,13 @@ function createInsights({formattedInsights, isNewsFormat, limit}){
     const insights = [];
     let i = 0;
     while(insights.length < limit && i < formattedInsights.length){
-        const insight = formattedInsights[i]
+        const insight = formattedInsights[i];
         if(insight){
-            insights.push(isNewsFormat ? insightToNews(insight) : insight)
+            insights.push(isNewsFormat ? insightToNews(insight) : insight);
         }
         i++;
     }
-    return insights
+    return insights;
 }
 
 async function getArtistInsights({ id, limit, weight, daysAgo, newsFormat }) {
@@ -47,7 +47,7 @@ async function getArtistInsights({ id, limit, weight, daysAgo, newsFormat }) {
             filteredResults.map(result => formatInsight(result)) // formatInsight accepts an object and returns a Promise
         );
         const insightsLimit = Math.abs(limit + (10 - definedWeight) * 200); // TODO should we ensure definedWeight <= 10 ?
-        const isNewsFormat = Boolean(newsFormat)
+        const isNewsFormat = Boolean(newsFormat);
         const insights = createInsights({formattedInsights, isNewsFormat, limit: insightsLimit});
         return { insights, ...(isNewsFormat && {weight: definedWeight}) };
     }catch(err){
