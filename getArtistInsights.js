@@ -28,9 +28,7 @@ function createInsights({formattedInsights, isNewsFormat, limit}){
     let i = 0;
     while(insights.length < limit && i < formattedInsights.length){
         const insight = formattedInsights[i];
-        if(insight){
-            insights.push(isNewsFormat ? insightToNews(insight) : insight);
-        }
+        if(insight) insights.push(isNewsFormat ? insightToNews(insight) : insight);
         i++;
     }
     return insights;
@@ -41,10 +39,8 @@ async function getArtistInsights({ id, limit, weight, daysAgo, newsFormat }) {
         const definedWeight = await defineWeight({id, weight, daysAgo});
         const sfResult = await getArtistInsightsFromDb({id, limit, definedWeight, daysAgo });
         const filteredResults = filterResults(sfResult);
-        const formattedInsights = await Promise.all(
-            filteredResults.map(result => formatInsight(result)) // formatInsight accepts an object and returns a Promise
-        );
-        const insightsLimit = Math.abs(limit + (10 - definedWeight) * 200); // TODO should we ensure definedWeight <= 10 ?
+        const formattedInsights = await Promise.all( filteredResults.map(result => formatInsight(result)) ); // formatInsight accepts an object and returns a Promise
+        const insightsLimit = Math.abs(limit + (10 - definedWeight) * 200); // assuming insightsLimit is a positive value. TODO should we ensure definedWeight <= 10 ?
         const isNewsFormat = Boolean(newsFormat);
         const insights = createInsights({formattedInsights, isNewsFormat, limit: insightsLimit});
         return { insights, ...(isNewsFormat && {weight: definedWeight}) };
