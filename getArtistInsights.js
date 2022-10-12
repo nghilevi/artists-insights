@@ -15,12 +15,12 @@ function getArtistInsightsFromDb({ id, limit, weight, daysAgo }){
 async function evaluateWeight ({id, daysAgo}) {
     const weight = {high: 8, medium: 4, low: 1};
     const counts = await getInsightsCountFromDb({id, highWeight: weight.high, mediumWeight: weight.medium, daysAgo});
-    const [isHigh, isMedium] = [counts[0]?.count, counts[1]?.count];
+    const [isHigh, isMedium] = [counts[0]?.count > 0, counts[1]?.count > 0];
     return isHigh ? weight.high : (isMedium ? weight.medium : weight.low);
 }
 
 async function defineWeight({id, weight, daysAgo}){ // return a number
-    return typeof weight === 'number' ? weight : await evaluateWeight({id, daysAgo});
+    return weight === weight && typeof weight === 'number' ? weight : await evaluateWeight({id, daysAgo});
 }
 
 function createInsights({formattedInsights, isNewsFormat, limit}){
