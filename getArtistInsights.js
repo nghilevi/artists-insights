@@ -21,7 +21,7 @@ const evaluateWeight = async function evaluateWeight ({id, daysAgo}) {
     return isHigh ? weight.high : (isMedium ? weight.medium : weight.low);
 }
 
-async function defineWeight({id, weight, daysAgo}){ // return a number
+const defineWeight = async function defineWeight({id, weight, daysAgo}){ // return a number
     return weight === weight && typeof weight === 'number' ? weight : await evaluateWeight({id, daysAgo});
 }
 
