@@ -47,7 +47,7 @@ async function getArtistInsights({ id, limit, weight, daysAgo, newsFormat }) { /
         const insightsLimit = Math.abs(limit + (10 - definedWeight) * 200); // assume insightsLimit is a positive value. TODO should we ensure definedWeight <= 10 ?
         const isNewsFormat = Boolean(newsFormat);
         const insights = createInsights({formattedInsights, isNewsFormat, limit: insightsLimit});
-        return { insights, ...(isNewsFormat && {weight: definedWeight}) };
+        return { insights, ...(isNewsFormat && {weight: definedWeight}) }; // always return an obj
     }catch(err){
         // TODO handle err here
     }
