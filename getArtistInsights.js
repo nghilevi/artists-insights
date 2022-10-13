@@ -34,13 +34,17 @@ function createInsights({formattedInsights, isNewsFormat, limit}){
     return insights;
 }
 
-async function getArtistInsights({ id, limit, weight, daysAgo, newsFormat }) {
+async function getArtistInsights({ id, limit, weight, daysAgo, newsFormat }) { // assume that id, limit, weight, daysAgo, newsFormat r in correct type
     try{
         const definedWeight = await defineWeight({id, weight, daysAgo});
         const sfResult = await getArtistInsightsFromDb({id, limit, definedWeight, daysAgo });
         const filteredResults = filterResults(sfResult);
+
+        /* make sure the param array length does not exceed Promise.all limit
+        src: https://stackoverflow.com/questions/55753746/how-much-is-the-limit-of-promise-all */
         const formattedInsights = await Promise.all( filteredResults.map(result => formatInsight(result)) ); // formatInsight accepts an object and returns a Promise
-        const insightsLimit = Math.abs(limit + (10 - definedWeight) * 200); // assuming insightsLimit is a positive value. TODO should we ensure definedWeight <= 10 ?
+
+        const insightsLimit = Math.abs(limit + (10 - definedWeight) * 200); // assume insightsLimit is a positive value. TODO should we ensure definedWeight <= 10 ?
         const isNewsFormat = Boolean(newsFormat);
         const insights = createInsights({formattedInsights, isNewsFormat, limit: insightsLimit});
         return { insights, ...(isNewsFormat && {weight: definedWeight}) };
